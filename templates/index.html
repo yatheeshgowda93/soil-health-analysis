@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soil Health Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background: url("{{ url_for('static', filename='images/soil.jpg') }}") no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      text-align: center;
+      padding-top: 100px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      color: #fff;
+      padding: 20px;
+      margin: 0;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+    }
+
+    .logout {
+      position: fixed;
+      top: 20px;
+      right: 30px;
+      z-index: 1001;
+    }
+
+    .logout a {
+      color: #fff;
+      background: #2E7D32;
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .logout a:hover {
+      background: #1B5E20;
+    }
+
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+      margin: 40px auto;
+      max-width: 1100px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.18);
+      border: 2px solid rgba(76, 175, 80, 0.6);
+      border-radius: 25px;
+      padding: 30px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      font-size: 1.1rem;
+      animation: waveFloat 4s ease-in-out infinite;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover { transform: translateY(-10px) scale(1.05); }
+
+    @keyframes waveFloat {
+      0%   { transform: translateY(0px); }
+      50%  { transform: translateY(-12px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .value {
+      font-size: 2.5em;
+      font-weight: bold;
+      color: #76FF03;
+      margin: 10px 0;
+    }
+
+    .charts {
+      max-width: 1100px;
+      margin: 30px auto;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .chart-box {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 18px;
+      padding: 15px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px);
+    }
+
+    canvas {
+      max-height: 180px;
+      width: 100% !important;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌱 Soil Health Analysis & Fertilizer Suggestion Tool</h1>
+  <div class="logout"><a href="/logout">Logout</a></div>
+
+  <!-- 🔹 Live Cards -->
+  <div class="card-container">
+    <div class="card">🌡️ <div class="value" id="temp">--</div> Temperature (°C)</div>
+    <div class="card">💧 <div class="value" id="soil_moisture">--</div> Soil Moisture (%)</div>
+    <div class="card">⚗️ <div class="value" id="ph">--</div> pH Level</div>
+  </div>
+
+  <!-- 🔹 NPK Cards -->
+  <div class="card-container">
+    <div class="card">🍃 <div class="value" id="nitrogen">--</div> Nitrogen (N)</div>
+    <div class="card">🌾 <div class="value" id="phosphorus">--</div> Phosphorus (P)</div>
+    <div class="card">🌺 <div class="value" id="potassium">--</div> Potassium (K)</div>
+  </div>
+
+  <!-- 🔹 Graphs -->
+  <div class="charts">
+    <div class="chart-box"><canvas id="tempChart"></canvas></div>
+    <div class="chart-box"><canvas id="phChart"></canvas></div>
+    <div class="chart-box"><canvas id="moistureChart"></canvas></div>
+    <div class="chart-box"><canvas id="npkChart"></canvas></div>
+  </div>
+
+  <script>
+    const tempChart = new Chart(document.getElementById("tempChart"), {
+      type: "line",
+      data: { labels: [], datasets: [{ label: "Temperature (°C)", data: [], borderColor: "red", backgroundColor:"rgba(255,0,0,0.2)", fill: true, tension:0.4 }] }
+    });
+
+    const moistureChart = new Chart(document.getElementById("moistureChart"), {
+      type: "line",
+      data: { labels: [], datasets: [{ label: "Soil Moisture (%)", data: [], borderColor: "blue", backgroundColor:"rgba(0,0,255,0.2)", fill: true, tension:0.4 }] }
+    });
+
+    const npkChart = new Chart(document.getElementById("npkChart"), {
+      type: "bar",
+      data: { labels: ["Nitrogen", "Phosphorus", "Potassium"], datasets: [{ label: "NPK", data: [0,0,0], backgroundColor: ["green","orange","purple"] }] },
+      options: { plugins: { legend: { display: false } } }
+    });
+
+    const phChart = new Chart(document.getElementById("phChart"), {
+      type: "line",
+      data: { labels: [], datasets: [{ label: "pH", data: [], borderColor: "limegreen", backgroundColor:"rgba(0,255,0,0.2)", fill: true, tension:0.4 }] }
+    });
+
+    async function fetchData() {
+      try {
+        const res = await fetch('/get_data');
+        const data = await res.json();
+
+        document.getElementById('temp').textContent = data.temperature ?? '--';
+        document.getElementById('soil_moisture').textContent = data.soil_moisture ?? '--';
+        document.getElementById('ph').textContent = data.ph ?? '--';
+        document.getElementById('nitrogen').textContent = data.nitrogen ?? '--';
+        document.getElementById('phosphorus').textContent = data.phosphorus ?? '--';
+        document.getElementById('potassium').textContent = data.potassium ?? '--';
+
+        const time = new Date().toLocaleTimeString();
+
+        if (data.temperature) {
+          tempChart.data.labels.push(time);
+          tempChart.data.datasets[0].data.push(data.temperature);
+          if (tempChart.data.labels.length > 10) { tempChart.data.labels.shift(); tempChart.data.datasets[0].data.shift(); }
+          tempChart.update();
+        }
+
+        if (data.soil_moisture) {
+          moistureChart.data.labels.push(time);
+          moistureChart.data.datasets[0].data.push(data.soil_moisture);
+          if (moistureChart.data.labels.length > 10) { moistureChart.data.labels.shift(); moistureChart.data.datasets[0].data.shift(); }
+          moistureChart.update();
+        }
+
+        if (data.ph) {
+          phChart.data.labels.push(time);
+          phChart.data.datasets[0].data.push(data.ph);
+          if (phChart.data.labels.length > 10) { phChart.data.labels.shift(); phChart.data.datasets[0].data.shift(); }
+          phChart.update();
+        }
+
+        npkChart.data.datasets[0].data = [
+          data.nitrogen ?? 0,
+          data.phosphorus ?? 0,
+          data.potassium ?? 0
+        ];
+        npkChart.update();
+
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      }
+    }
+
+    setInterval(fetchData, 3000);
+    window.onload = fetchData;
+  </script>
+</body>
+</html>

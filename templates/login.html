@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Soil Health Analysis & Fertilizer Suggestion Tool</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background-image: url('/static/images/x.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: pageFloat 8s ease-in-out infinite;
+    }
+
+    @keyframes pageFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .project-title-banner {
+      background: linear-gradient(to right, #d1c4e9, #b39ddb);
+      border: 2px solid #6a1b9a;
+      border-radius: 16px;
+      padding: 18px 32px;
+      text-align: center;
+      font-size: 26px;
+      font-weight: bold;
+      color: #4a148c;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      margin: 30px auto 20px;
+      width: fit-content;
+      max-width: 90%;
+      animation: fadeIn 2s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .main-content {
+      display: flex;
+      flex: 1;
+      padding: 20px;
+      animation: floatWave 6s ease-in-out infinite;
+    }
+
+    @keyframes floatWave {
+      0%, 100% { transform: translateY(0px); }
+      25% { transform: translateY(-10px); }
+      75% { transform: translateY(10px); }
+    }
+
+    .left-panel, .right-panel {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .crew-title {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #fff;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+      letter-spacing: 1px;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 180px);
+      gap: 30px;
+      justify-content: center;
+      animation: floatWave 6s ease-in-out infinite;
+    }
+
+    .member {
+      text-align: center;
+      position: relative;
+      transition: transform 0.3s ease;
+    }
+
+    .member:hover {
+      transform: scale(1.05);
+    }
+
+    .member img {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+
+    .member p {
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0,0,0,0.6);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .member:hover p {
+      opacity: 1;
+    }
+
+    .logo {
+      margin-top: 30px;
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .divider-line {
+      width: 2px;
+      background-color: rgba(255,255,255,0.3);
+      height: auto;
+      margin: 0 20px;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    .login-box h2 {
+      font-size: 26px;
+      margin-bottom: 10px;
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .login-box p {
+      margin-bottom: 20px;
+      color: #eee;
+    }
+
+    .login-box input[type="text"],
+    .login-box input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: rgba(255,255,255,0.9);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .login-box label {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      margin: 10px 0;
+      color: #fff;
+    }
+
+    .login-box input[type="checkbox"] {
+      margin-right: 8px;
+    }
+
+    .login-box a {
+      color: #fff;
+      text-decoration: underline;
+      font-size: 14px;
+      float: right;
+    }
+
+    .login-box input[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      background-color: #6a1b9a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: background 0.3s ease;
+    }
+
+    .login-box input[type="submit"]:hover {
+      background-color: #4a148c;
+    }
+
+    .error {
+      color: #ff6b6b;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 🌱 Project Title Banner -->
+  <div class="project-title-banner">
+    SOIL HEALTH ANALYSIS AND FERTILIZER SUGGESTION TOOL
+  </div>
+
+  <!-- 👥 Main Content -->
+  <div class="main-content">
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <div class="crew-title">Agricore Crew🌿</div>
+      <div class="team-grid">
+        <div class="member">
+          <img src="/static/images/C.jpg" alt="Yatheesh Gowda">
+          <p>Yatheesh Gowda</p>
+        </div>
+        <div class="member">
+          <img src="/static/images/B.jpg" alt="Sahan Kumar Rai">
+          <p>Sahan Kumar Rai</p>
+        </div>
+        <div class="member">
+          <img src="/static/images/A.jpg" alt="Viditha HV">
+          <p>Viditha HV</p>
+        </div>
+        <div class="member">
+          <img src="/static/images/D.jpg" alt="Prathima">
+          <p>Prathima</p>
+        </div>
+      </div>
+      <div class="logo"></div>
+    </div>
+
+    <!-- Divider Line -->
+    <div class="divider-line"></div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <div class="login-box">
+        <h2>Welcome back</h2>
+        <p>Please enter your details</p>
+        {% if error %}
+          <p class="error">{{ error }}</p>
+        {% endif %}
+        <form method="post" autocomplete="off">
+          <input type="text" name="username" placeholder="Admin name" required autocomplete="new-email">
+          <input type="password" name="password" placeholder="Admin password" required autocomplete="new-password">
+          <label><input type="checkbox" name="remember"> Remember me for 30 days</label>
+          <a href="#">Forgot password?</a>
+          <input type="submit" value="Sign in">
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
